@@ -2,6 +2,7 @@ ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
     - LoginScreen
+    - RandomColSystem
     - SimpleMessageBoxScript
     - SimpleRabMQSctipt
     Unity.2D.Animation.Editor.dll:
@@ -33,7 +34,7 @@ ScriptsOnlyBuild:
     - UnityEngine.UI.InputField
     - UnityEngine.UI.Text
   sceneClasses:
-    Assets/Scenes/SampleScene.unity:
+    Assets/Scenes/Part 1 Message App.unity:
     - Class: 1
       Script: {instanceID: 0}
     - Class: 4
@@ -51,27 +52,29 @@ ScriptsOnlyBuild:
     - Class: 104
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 11834}
+      Script: {instanceID: 11810}
     - Class: 114
-      Script: {instanceID: 12146}
+      Script: {instanceID: 11836}
     - Class: 114
       Script: {instanceID: 12200}
     - Class: 114
-      Script: {instanceID: 12910}
+      Script: {instanceID: 12404}
     - Class: 114
-      Script: {instanceID: 13426}
+      Script: {instanceID: 12912}
     - Class: 114
-      Script: {instanceID: 13688}
+      Script: {instanceID: 13428}
     - Class: 114
-      Script: {instanceID: 14004}
+      Script: {instanceID: 13690}
     - Class: 114
-      Script: {instanceID: 14506}
+      Script: {instanceID: 14006}
     - Class: 114
-      Script: {instanceID: 15142}
+      Script: {instanceID: 14252}
     - Class: 114
-      Script: {instanceID: 19778}
+      Script: {instanceID: 14290}
     - Class: 114
-      Script: {instanceID: 20134}
+      Script: {instanceID: 14512}
+    - Class: 114
+      Script: {instanceID: 15148}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -89,6 +92,12 @@ ScriptsOnlyBuild:
     - Class: 224
       Script: {instanceID: 0}
   scriptHashData:
+  - hash:
+      serializedVersion: 2
+      Hash: 699619b86d9359741a4f58540298c80b
+    assemblyName: UnityEngine.UI.dll
+    namespaceName: UnityEngine.UI
+    className: Text
   - hash:
       serializedVersion: 2
       Hash: 4bc4346a71a8df53a6b106f68ef3a190
@@ -137,12 +146,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: ActivationTrack
-  - hash:
-      serializedVersion: 2
-      Hash: 699619b86d9359741a4f58540298c80b
-    assemblyName: UnityEngine.UI.dll
-    namespaceName: UnityEngine.UI
-    className: Text
   - hash:
       serializedVersion: 2
       Hash: fd8b23ad3c9e81bc85b197495bc510ac
@@ -209,6 +212,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: SignalAsset
+  - hash:
+      serializedVersion: 2
+      Hash: 9e284b50abd480363ea1da1b7be32486
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: RandomColSystem
   - hash:
       serializedVersion: 2
       Hash: 0dbc3be398b4869a5c8d0d8481ee402c
@@ -445,6 +454,18 @@ ScriptsOnlyBuild:
     className: TimelineAsset
   - hash:
       serializedVersion: 2
+      Hash: 5f5b107fbd8a7695077c0005a352e645
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SimpleMessageBoxScript
+  - hash:
+      serializedVersion: 2
+      Hash: f3ab8bda3ff821bd66ac7d19d8ce96f8
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: LoginScreen
+  - hash:
+      serializedVersion: 2
       Hash: 760787567e1b60d64a3e421ab83ee14a
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
@@ -575,19 +596,7 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
-  - hash:
-      serializedVersion: 2
-      Hash: 5f5b107fbd8a7695077c0005a352e645
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: SimpleMessageBoxScript
-  - hash:
-      serializedVersion: 2
-      Hash: f3ab8bda3ff821bd66ac7d19d8ce96f8
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: LoginScreen
   platform: 5
   scenePathNames:
-  - Assets/Scenes/SampleScene.unity
+  - Assets/Scenes/Part 1 Message App.unity
   playerPath: D:/Uni work/PBT205/LiveBuild/RabbitMQ.exe

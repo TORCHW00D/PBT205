@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/Part 1 Message App.unity
+- path: Assets/Scenes/Part 2 Trading System.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

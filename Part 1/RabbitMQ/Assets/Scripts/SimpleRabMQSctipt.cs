@@ -23,17 +23,17 @@ public class SimpleRabMQSctipt : MonoBehaviour
      * 
      * To open a connection, instantiate a [ConnectionFactory] & configure it to use the desired hostname, virtual host, credentials TLS settings and any other params
      * 
-     * The code snippets in the following section connect to a RabbitMQ node on [hostname]     */
+     * The code snippets in the following section connect to a RabbitMQ node on [hostname]  
+     */
+
     private ConnectionFactory factory;
     private IConnection conn;
     private IModel channel;
 
     private EventingBasicConsumer consumer;
 
-    private SimpleMessage Message;
-
-    private List<GameObject> MessageQueue;
-
+    private List<SimpleMessage> List_MessageCollection;
+    
     public Text TextBoxSend;
     private string Username;
     private string Password;
@@ -43,12 +43,11 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
     public void Setup(string UsrName, string pwd)
     {
-
+        
         Username = UsrName;
         Password = pwd;
 
         TextBoxSend.text = "Type a message!";
-        MessageQueue = new List<GameObject>();
 
         factory = new ConnectionFactory();
         factory.UserName = Username;
@@ -72,7 +71,7 @@ public class SimpleRabMQSctipt : MonoBehaviour
         channel.ExchangeDeclare("SimpleVirtHost", ExchangeType.Direct);
         channel.QueueDeclare(queue: "hello", false, false, false, null);
 
-        Message = new SimpleMessage();      //fill temporary message
+        SimpleMessage Message = new SimpleMessage();      //fill temporary message
         Message.Message = "Hello world!";   //create the simplest hello world message
         Message.Username = Username;        //fill the username out for sending
         string JsonEncoded = JsonUtility.ToJson(Message);   //serialize to JSON for complex data sending
@@ -80,20 +79,19 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
         channel.BasicPublish(exchange: "", routingKey: "hello", basicProperties: null, body: body); //send the message
 
+        List_MessageCollection = new List<SimpleMessage>();
         
-        //Debug.Log("Sent message!");
-
         // above is all the setup needed to send a message on a single channel -- creating one igf there's not one provided.
 
         consumer = new EventingBasicConsumer(channel);
         consumer.Received += (model, ea) =>
         {
-            
             var body2 = ea.Body.ToArray();
             var message2 = Encoding.UTF8.GetString(body2); //decode from UTF-8; need to de-serialze JSON message format
-            Message = JsonUtility.FromJson<SimpleMessage>(message2);
-            print(Message.Username + ": " + Message.Message); //debug logging of recieved message
             
+            SimpleMessage recievedMessage = JsonUtility.FromJson<SimpleMessage>(message2);
+
+            List_MessageCollection.Add(recievedMessage); //add to list to print to screen
         };
         channel.BasicConsume(queue: "hello", autoAck: true, consumer: consumer);
         //Debug.Log("Simple tasks finished, necking.");
@@ -115,10 +113,12 @@ public class SimpleRabMQSctipt : MonoBehaviour
                 }
                 else if (c == '\n' || c == '\r') //enter / return
                 {
-                    Message.Message = TextBoxSend.text;
-                    Message.Username = Username;
 
-                    string JsonEncoded = JsonUtility.ToJson(Message);
+                    SimpleMessage simpleMessage = new SimpleMessage();
+                    simpleMessage.Message = TextBoxSend.text;
+                    simpleMessage.Username = Username;
+                    List_MessageCollection.Add(simpleMessage);
+                    string JsonEncoded = JsonUtility.ToJson(simpleMessage);
 
                     SendMessage(JsonEncoded);
                     TextBoxSend.text = "";
@@ -132,14 +132,24 @@ public class SimpleRabMQSctipt : MonoBehaviour
                     TextBoxSend.text += c;
                 }
             }
+            if (List_MessageCollection.Count > 25)
+            {
+                List_MessageCollection.RemoveAt(0);
+            }
         }
-        //RecieveMessage();
+        
     }
 
     private void closeSystem() //safety kill for everything :D
     {
         if (TextInputEnabled)
         {
+            SimpleMessage simple = new SimpleMessage();
+            simple.Message = "[[User left channel!]]";
+            simple.Username = Username;
+            string JsonEncoded = JsonUtility.ToJson(simple);
+            SendMessage(JsonEncoded);
+
             channel.Close();
             conn.Close();
         }
@@ -154,8 +164,13 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
     private void OnGUI()
     {
-        if(TextInputEnabled)
-            GUI.Label(new Rect(10, 10, 400, 50), Message.Message);
+        if (TextInputEnabled)
+        {
+            for(int i = 0; i < List_MessageCollection.Count; i++)
+            {
+                GUI.Label(new Rect(10, 11 * i, 1000, 50), (List_MessageCollection[i].Username + ": " + List_MessageCollection[i].Message));
+            }
+        }
     }
 
     private void OnApplicationQuit()
