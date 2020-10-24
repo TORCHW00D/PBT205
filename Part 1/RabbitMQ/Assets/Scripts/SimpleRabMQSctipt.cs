@@ -37,23 +37,44 @@ public class SimpleRabMQSctipt : MonoBehaviour
     public Text TextBoxSend;
     private string Username;
     private string Password;
+    private string ConnectionHost;
+    private string ConnectionVirtualHost;
+
 
     public GameObject messageBox;
     public bool TextInputEnabled = false;
 
-    public void Setup(string UsrName, string pwd)
+    public void Setup(string UsrName, string pwd, string Host, string VHost)
     {
         
         Username = UsrName;
         Password = pwd;
-
+        ConnectionHost = Host;
+        ConnectionVirtualHost = VHost;
         TextBoxSend.text = "Type a message!";
 
         factory = new ConnectionFactory();
         factory.UserName = Username;
         factory.Password = Password;
-        factory.VirtualHost = "SimpleVirtHost";
-        factory.HostName = "localhost";
+
+        if (ConnectionVirtualHost.Length != 0)
+        {
+            factory.VirtualHost = ConnectionVirtualHost;
+        }
+        else
+        {
+            factory.VirtualHost = "SimpleVirtHost";
+        }
+
+
+        if (ConnectionHost.Length != 0)
+        {
+            factory.HostName = Host;
+        }
+        else
+        {
+            factory.HostName = "localhost";
+        }
         
         conn = factory.CreateConnection();
 
@@ -68,7 +89,7 @@ public class SimpleRabMQSctipt : MonoBehaviour
          * 
          * building blocks of protocol must be defined and linked together before they can be used
          */
-        channel.ExchangeDeclare("SimpleVirtHost", ExchangeType.Direct);
+        channel.ExchangeDeclare(factory.VirtualHost, ExchangeType.Direct);
         channel.QueueDeclare(queue: "hello", false, false, false, null);
 
         SimpleMessage Message = new SimpleMessage();      //fill temporary message
@@ -175,9 +196,9 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        Debug.Log("Closing systems!");
+        //Debug.Log("Closing systems!");
         closeSystem();
-        Debug.Log("Systems closed.");
+        //Debug.Log("Systems closed.");
     }
 
 }
