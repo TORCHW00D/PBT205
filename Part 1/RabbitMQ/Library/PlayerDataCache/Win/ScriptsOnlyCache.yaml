@@ -15,6 +15,8 @@ ScriptsOnlyBuild:
     - UnityEditor.Tilemaps.TileDragAndDropManager
     Unity.Rider.Editor.dll:
     - Packages.Rider.Editor.UnitTesting.CallbackData
+    Unity.Timeline.Editor.dll:
+    - TimelineProjectSettings
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
     - UnityEditor.TestTools.TestRunner.TestListCacheData
@@ -473,7 +475,7 @@ ScriptsOnlyBuild:
     className: LoginScreen
   - hash:
       serializedVersion: 2
-      Hash: 8b0eeae6706c3f989bc325023274224d
+      Hash: 78f4303ded89487de2ce3ffb96f6acef
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: StockMarker
@@ -615,7 +617,19 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
+  - hash:
+      serializedVersion: 2
+      Hash: 2284c3c972cf87a478b019d3cdb17c75
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: StockOrder
+  - hash:
+      serializedVersion: 2
+      Hash: ad20e756eff113525218d1f2f5149929
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: StonksMessageSystem
   platform: 5
   scenePathNames:
   - Assets/Scenes/Part 1 Message App.unity
-  playerPath: D:/Uni work/PBT205/LiveBuild/RabbitMQ.exe
+  playerPath: D:/Uni work/PBT205/LiveBuild/Assignment 1.exe

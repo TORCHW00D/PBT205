@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using JetBrains.Annotations;
 using RabbitMQ.Client;
@@ -27,13 +28,17 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
     private ConnectionFactory factory;
     private IConnection conn;
-    private IModel channel, TilingChannel;
+    private IModel channel, TilingChannel, StocksChannel;
 
-    private EventingBasicConsumer consumer, TilingConsumer;
+    private EventingBasicConsumer consumer, TilingConsumer, StocksConsumer;
 
-    private List<SimpleMessage> List_MessageCollection;
-    private List<TilingMessage> List_TilingMessages_Collision;
-    private List<TilingMessage> List_TilingMessages_PositionUpdates;
+    private List<SimpleMessage> List_MessageCollection; //msgs from otehr users
+
+    private List<TilingMessage> List_TilingMessages_Collision; //messages for tile collisions
+    private List<TilingMessage> List_TilingMessages_PositionUpdates; //messages for tile updates
+
+    private List<StocksMessageStruct> List_StocksMessaging_MarketPrice; //messages for stock market price updates
+    private List<StocksMessageStruct> List_StocksMessaging_Sell_n_BuyRequests; //messages for stock market price sell and buy requests
 
     public Text TextBoxSend;
     private string Username;
@@ -102,7 +107,6 @@ public class SimpleRabMQSctipt : MonoBehaviour
         channel.BasicPublish(exchange: "", routingKey: "hello", basicProperties: null, body: body); //send the message
 
         
-
         List_MessageCollection = new List<SimpleMessage>();
         
         // above is all the setup needed to send a message on a single channel -- creating one igf there's not one provided.
@@ -145,6 +149,32 @@ public class SimpleRabMQSctipt : MonoBehaviour
         };
         TilingChannel.BasicConsume(queue: "position", autoAck: true, consumer: TilingConsumer);
 
+        //stocks messaging system
+        StocksChannel = conn.CreateModel(); //create chanel setup
+        StocksChannel.ExchangeDeclare(factory.VirtualHost, ExchangeType.Direct); //channel decleration type
+        StocksChannel.QueueDeclare(queue: "stocks", false, false, false, null); 
+
+        List_StocksMessaging_MarketPrice = new List<StocksMessageStruct>(); //fill list
+        List_StocksMessaging_Sell_n_BuyRequests = new List<StocksMessageStruct>(); //fill list
+
+        StocksConsumer = new EventingBasicConsumer(StocksChannel); //create consumer system
+        StocksConsumer.Received += (model, ea) =>
+        {
+            var Body = ea.Body.ToArray();
+            var StocksMessage = Encoding.UTF8.GetString(Body);
+            StocksMessageStruct temp = JsonUtility.FromJson<StocksMessageStruct>(StocksMessage);
+            if (temp.type == StocksEnumMessageType.MarketPrice)
+            {
+                List_StocksMessaging_MarketPrice.Add(temp);
+            }
+            if (temp.type == StocksEnumMessageType.buyReq || temp.type == StocksEnumMessageType.sellReq)
+            {
+                List_StocksMessaging_Sell_n_BuyRequests.Add(temp);
+            }
+        };
+        StocksChannel.BasicConsume(queue: "stocks", autoAck: true, consumer: StocksConsumer);
+
+
     }
 
     // Update is called once per frame
@@ -186,13 +216,21 @@ public class SimpleRabMQSctipt : MonoBehaviour
             {
                 List_MessageCollection.RemoveAt(0);
             }
-            if(List_TilingMessages_Collision.Count > 25)
+            if(List_TilingMessages_Collision.Count > 6)
             {
                 List_TilingMessages_Collision.RemoveAt(0);
             }
-            if(List_TilingMessages_PositionUpdates.Count > 25)
+            if(List_TilingMessages_PositionUpdates.Count > 6)
             {
                 List_TilingMessages_PositionUpdates.RemoveAt(0);
+            }
+            if(List_StocksMessaging_MarketPrice.Count > 6)
+            {
+                List_StocksMessaging_MarketPrice.RemoveAt(0);
+            }
+            if(List_StocksMessaging_Sell_n_BuyRequests.Count > 6)
+            {
+                List_StocksMessaging_Sell_n_BuyRequests.RemoveAt(0);
             }
         }
         
@@ -230,11 +268,19 @@ public class SimpleRabMQSctipt : MonoBehaviour
             }
             for(int i = 0; i < List_TilingMessages_Collision.Count; i++)
             {
-                GUI.Label(new Rect(500, 11 * i, 500, 50), (List_TilingMessages_Collision[i].Message)); //print the recived message just off the edge of the screen (?)
+                GUI.Label(new Rect(500, 11 * i, 500, 50), "Collision: " + (List_TilingMessages_Collision[i].Message)); //print the recived message just off the edge of the screen (?)
             }
             for(int i = 0; i < List_TilingMessages_PositionUpdates.Count; i++)
             {
-                GUI.Label(new Rect(1000, 11 * i, 500, 50), (List_TilingMessages_PositionUpdates[i].Message)); //print the recived message just off the edge of the screen (?)
+                GUI.Label(new Rect(1000, 11 * i, 500, 50), "New move: " + (List_TilingMessages_PositionUpdates[i].Message)); //print the recived message just off the edge of the screen (?)
+            }
+            for(int i = 0; i < List_StocksMessaging_MarketPrice.Count; i++)
+            {
+                GUI.Label(new Rect(500, (11 * i) + 77, 500, 50), "Market Price update: " +(List_StocksMessaging_MarketPrice[i].Message)); //print the recived message just off the edge of the screen (?)
+            }
+            for(int i = 0; i < List_StocksMessaging_Sell_n_BuyRequests.Count; i++)
+            {
+                GUI.Label(new Rect(1000, (11 * i) + 77, 500, 50), "Sell(0) | Buy (1): " + (List_StocksMessaging_Sell_n_BuyRequests[i].type + " req: " + List_StocksMessaging_Sell_n_BuyRequests[i].Message)); //print the recived message just off the edge of the screen (?)
             }
         }
     }
