@@ -1,0 +1,50 @@
+Hello!
+If you're reading this file, you're using Xavier and Tom's RabbitMQ middle-ware solution -- good luck, you'll need to follow these next steps carefully.
+
+To start with, make sure you're running [DOCKER VERSION 19.03.13].
+You'll need to run rabbit MQ with the following command:
+
+[  docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management  ]
+
+With RabbitMQ running, open the docker control panel and open the website attached to RabbitMQ, or, using your browser of choice, open 
+[   http://localhost:15672/   ]
+the default username and password are
+[   guest    ]
+[   guest    ]
+
+From the overview screen, navigate to the "Admin" tab, and scroll down to the "Add a user" section.
+For safety sake, we'll list all the users made during our creation of this assignment:
+[   Tom    ] 			usrname
+[   12345    ]			password
+
+[   simpleUser   ]		usrname
+[   12345     ]			password
+
+[   a   ]			usrname
+[   a   ]			password
+
+With the users added, now it't time to add a virtual host! Thankfully there's only one this time:
+Using the sidebar titles "Virtual Hosts" under the "Admin" tab -- same as the user creation screen -- we'll need to "Add a new virtual host"
+the name has to be:
+[   SimpleVirtHost   ]		virtual host name
+
+but the desctiption and tags can be anything you like :D
+
+Wit hboth users & VirtualHost set up, the final step before running the assignment builds is to give permissions to the Users, so they 
+may access the VirtualHost
+For each user under the "Admin" -> "Users" tab, click the name in the left most channel -- "Name"
+This should take you to an overview page, where we can add virtual hosts using the dropdown menu.
+Click the 
+[   SimpleVirtHost   ]		permission VHost needed
+option, then "set permission".
+
+This should manage all the permissions needed for the assignment builds; some of them use automated logins to save the user valuable time.
+
+Run the .exe in the [Part 1] folder first; you'll see more that way.
+
+If there's any issues, email either developer on
+twilson170@gmail.com
+or
+xmanagreve@gmail.com
+
+Have fun!
