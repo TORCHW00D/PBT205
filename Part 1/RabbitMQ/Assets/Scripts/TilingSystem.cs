@@ -20,6 +20,7 @@ public class TilingSystem : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject tileableObject;
+    public TilingSystemNetcode MessageService;
 
     public GameObject IDPanel;
     public Text[] texts;
@@ -27,7 +28,7 @@ public class TilingSystem : MonoBehaviour
     public int Width, Height;
     public int EntityCount;
 
-    private bool hasUpdated = false;
+    private bool UpdatesAllowed = true;
 
     private List<GameObject> tiles;
     private List<Entity> Entities;
@@ -36,6 +37,8 @@ public class TilingSystem : MonoBehaviour
 
     void Start()
     {
+        MessageService.TilingSystemSetup("simpleUser","12345"); //setup message service for NETCODE & RabbitMQ
+        
         IDPanel.SetActive(false);
         tiles = new List<GameObject>();
         Entities = new List<Entity>();
@@ -76,7 +79,7 @@ public class TilingSystem : MonoBehaviour
 
             if (hit.collider != null) //if we hit something that has a collider
             {
-                 GameObject clicked = hit.collider.gameObject; //copy the collider
+                GameObject clicked = hit.collider.gameObject; //copy the collider
                 if(tiles.Exists(go => go.transform == clicked.transform)) //search the list of tiles for this tile, checking it exists
                 {
                     //Debug.Log("Found tile!");
@@ -96,125 +99,134 @@ public class TilingSystem : MonoBehaviour
                                 IDPanel.SetActive(true);
                                 texts[0].text = Entities[i].Identifier;
                                 texts[1].text = temp;
-                                Time.timeScale = 0.0f;
+
+                                string SentMessageTemp = texts[0].text + " entity has hit: " + texts[1].text; //really bad compile strat
+                                MessageService.SendMessageTilingSystem(SentMessageTemp, messageClass.querySend); //compile and send message to RabbitMQ
+                                Debug.Log("Message sent!"); //debugging for sake's sake
+                                UpdatesAllowed = false;
                             }
                         }
                     }
                 }
             }
         }
-        if(Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            //Entities.ElementAt<Entity>(0).Xpos += 1;
-            if (Entities[0].Ypos > 0)
-            {
-                Entities[0] = new Entity { Xpos = Entities[0].Xpos, Ypos = Entities[0].Ypos - 1, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
-                hasUpdated = false;
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            if (Entities[0].Ypos < Height - 1)
-            {
-                Entities[0] = new Entity { Xpos = Entities[0].Xpos, Ypos = Entities[0].Ypos + 1, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
-                hasUpdated = false;
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (Entities[0].Xpos > 0)
-            {
-                Entities[0] = new Entity { Xpos = Entities[0].Xpos - 1, Ypos = Entities[0].Ypos, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (Entities[0].Xpos < Width - 1)
-            {
-                Entities[0] = new Entity { Xpos = Entities[0].Xpos + 1, Ypos = Entities[0].Ypos, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
-            }
-        }
 
-        for(int i = 0; i < tiles.Count; i++)
+        if (UpdatesAllowed)
         {
-            tiles[i].GetComponent<SpriteRenderer>().color = Color.white;
-        }
-        for (int i = 1; i < EntityCount; i++)
-        {
-            if(Entities[i].CollisionList.Count > 15)
-            {
-                Entities[i].CollisionList.RemoveAt(0);
-            }
 
-            if( Entities[i].MoveTime == (int)Time.time)
+            if (Input.GetKeyDown(KeyCode.DownArrow))
             {
-                int TempDir = Random.Range(1, 9);
-                switch(TempDir)
+                //Entities.ElementAt<Entity>(0).Xpos += 1;
+                if (Entities[0].Ypos > 0)
                 {
-                    case 1: //up
-                        if (Entities[i].Ypos < Height - 1)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 2: //up right
-                        if (Entities[i].Ypos < Height - 1 && Entities[i].Xpos < Width - 1)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 3: //right
-                        if (Entities[i].Xpos < Width - 1)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 4: //down right
-                        if (Entities[i].Ypos > 0 && Entities[i].Xpos < Width - 1)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 5: //down
-                        if (Entities[i].Ypos > 0)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 6: //down left
-                        if (Entities[i].Ypos > 0 && Entities[i].Xpos > 0)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos - 1, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                    case 7: //left
-                        if (Entities[i].Xpos > 0)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos  - 1, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };                        
-                        break;
-                    case 8: //up left
-                        if (Entities[i].Ypos < Height - 1 && Entities[i].Xpos > 0)
-                            Entities[i] = new Entity { Xpos = Entities[i].Xpos - 1, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
-                        break;
-                }
-                Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = (int)Time.time + Random.Range(1, 6), color = Entities[i].color, HasUpdated = false, CollisionList = Entities[0].CollisionList };
-            }
-            tiles[Entities[i].Xpos * Width + Entities[i].Ypos].GetComponent<SpriteRenderer>().color = Entities[i].color;
-        }
-
-        for(int i = 0; i < EntityCount - 1; i++)
-        {
-            for (int k = i + 1; k < EntityCount; k++)
-            {
-                if (Entities[i].Xpos == Entities[k].Xpos && Entities[i].Ypos == Entities[k].Ypos && !Entities[i].HasUpdated)
-                {
-                    Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, HasUpdated = true, CollisionList = Entities[i].CollisionList };
-                    Entities[i].CollisionList.Add(Entities[k].Identifier);
-                    Entities[k].CollisionList.Add(Entities[i].Identifier);
-                    string temp = Entities[i].Identifier + " hit " + Entities[k].Identifier + " at " + Entities[i].Xpos.ToString() + "@" + Entities[i].Ypos.ToString();
-                    //Debug.Log(temp);
-
-                    CollisionCatalogue.Add(temp);
+                    Entities[0] = new Entity { Xpos = Entities[0].Xpos, Ypos = Entities[0].Ypos - 1, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
                 }
             }
+            else if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                if (Entities[0].Ypos < Height - 1)
+                {
+                    Entities[0] = new Entity { Xpos = Entities[0].Xpos, Ypos = Entities[0].Ypos + 1, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
+                }
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                if (Entities[0].Xpos > 0)
+                {
+                    Entities[0] = new Entity { Xpos = Entities[0].Xpos - 1, Ypos = Entities[0].Ypos, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
+                }
+            }
+            else if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                if (Entities[0].Xpos < Width - 1)
+                {
+                    Entities[0] = new Entity { Xpos = Entities[0].Xpos + 1, Ypos = Entities[0].Ypos, Identifier = Entities[0].Identifier, HasUpdated = false, CollisionList = Entities[0].CollisionList };
+                }
+            }
+
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                tiles[i].GetComponent<SpriteRenderer>().color = Color.white;
+            }
+            for (int i = 1; i < EntityCount; i++)
+            {
+                if (Entities[i].CollisionList.Count > 15)
+                {
+                    Entities[i].CollisionList.RemoveAt(0);
+                }
+
+                if (Entities[i].MoveTime == (int)Time.time)
+                {
+                    int TempDir = Random.Range(1, 9);
+                    switch (TempDir)
+                    {
+                        case 1: //up
+                            if (Entities[i].Ypos < Height - 1)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 2: //up right
+                            if (Entities[i].Ypos < Height - 1 && Entities[i].Xpos < Width - 1)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 3: //right
+                            if (Entities[i].Xpos < Width - 1)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 4: //down right
+                            if (Entities[i].Ypos > 0 && Entities[i].Xpos < Width - 1)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos + 1, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 5: //down
+                            if (Entities[i].Ypos > 0)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 6: //down left
+                            if (Entities[i].Ypos > 0 && Entities[i].Xpos > 0)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos - 1, Ypos = Entities[i].Ypos - 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 7: //left
+                            if (Entities[i].Xpos > 0)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos - 1, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                        case 8: //up left
+                            if (Entities[i].Ypos < Height - 1 && Entities[i].Xpos > 0)
+                                Entities[i] = new Entity { Xpos = Entities[i].Xpos - 1, Ypos = Entities[i].Ypos + 1, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, CollisionList = Entities[0].CollisionList };
+                            break;
+                    }
+                    Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = (int)Time.time + Random.Range(1, 6), color = Entities[i].color, HasUpdated = false, CollisionList = Entities[0].CollisionList };
+                }
+                tiles[Entities[i].Xpos * Width + Entities[i].Ypos].GetComponent<SpriteRenderer>().color = Entities[i].color;
+            }
+
+            for (int i = 0; i < EntityCount - 1; i++)
+            {
+                for (int k = i + 1; k < EntityCount; k++)
+                {
+                    if (Entities[i].Xpos == Entities[k].Xpos && Entities[i].Ypos == Entities[k].Ypos && !Entities[i].HasUpdated)
+                    {
+                        Entities[i] = new Entity { Xpos = Entities[i].Xpos, Ypos = Entities[i].Ypos, Identifier = Entities[i].Identifier, MoveTime = Entities[i].MoveTime, color = Entities[i].color, HasUpdated = true, CollisionList = Entities[i].CollisionList };
+                        Entities[i].CollisionList.Add(Entities[k].Identifier);
+                        Entities[k].CollisionList.Add(Entities[i].Identifier);
+                        string temp = Entities[i].Identifier + " hit " + Entities[k].Identifier + " at " + Entities[i].Xpos.ToString() + "@" + Entities[i].Ypos.ToString();
+
+                        MessageService.SendMessageTilingSystem(temp, messageClass.positionUpdate);
+                        //Debug.Log(temp);
+
+                        CollisionCatalogue.Add(temp);
+                    }
+                }
+            }
+            if (CollisionCatalogue.Count > 15)
+            {
+                CollisionCatalogue.RemoveAt(0);
+            }
+            tiles[Entities[0].Xpos * Width + Entities[0].Ypos].GetComponent<SpriteRenderer>().color = Color.red;
         }
-        if (CollisionCatalogue.Count > 15)
-        {
-            CollisionCatalogue.RemoveAt(0);
-        }
-        tiles[Entities[0].Xpos * Width + Entities[0].Ypos].GetComponent<SpriteRenderer>().color = Color.red;
     }
 
     public void CloseButton()
     {
-        Time.timeScale = 1.0f;
+        UpdatesAllowed = true;
         IDPanel.SetActive(false);
     }
 

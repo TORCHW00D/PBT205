@@ -7,7 +7,6 @@ using RabbitMQ.Client.Events;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class SimpleMessage
 {
     public string Username;
@@ -28,12 +27,14 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
     private ConnectionFactory factory;
     private IConnection conn;
-    private IModel channel;
+    private IModel channel, TilingChannel;
 
-    private EventingBasicConsumer consumer;
+    private EventingBasicConsumer consumer, TilingConsumer;
 
     private List<SimpleMessage> List_MessageCollection;
-    
+    private List<TilingMessage> List_TilingMessages_Collision;
+    private List<TilingMessage> List_TilingMessages_PositionUpdates;
+
     public Text TextBoxSend;
     private string Username;
     private string Password;
@@ -100,6 +101,8 @@ public class SimpleRabMQSctipt : MonoBehaviour
 
         channel.BasicPublish(exchange: "", routingKey: "hello", basicProperties: null, body: body); //send the message
 
+        
+
         List_MessageCollection = new List<SimpleMessage>();
         
         // above is all the setup needed to send a message on a single channel -- creating one igf there's not one provided.
@@ -116,6 +119,32 @@ public class SimpleRabMQSctipt : MonoBehaviour
         };
         channel.BasicConsume(queue: "hello", autoAck: true, consumer: consumer);
         //Debug.Log("Simple tasks finished, necking.");
+
+        //Tiling message rec system in progress
+        TilingChannel = conn.CreateModel();
+        TilingChannel.ExchangeDeclare(factory.VirtualHost, ExchangeType.Direct);
+        TilingChannel.QueueDeclare(queue: "position", false, false, false, null);
+
+        List_TilingMessages_Collision = new List<TilingMessage>();
+        List_TilingMessages_PositionUpdates = new List<TilingMessage>();
+
+        TilingConsumer = new EventingBasicConsumer(TilingChannel);
+        TilingConsumer.Received += (model, ea) =>
+        {
+            var body2 = ea.Body.ToArray();
+            var Message2 = Encoding.UTF8.GetString(body2);
+            TilingMessage temp = JsonUtility.FromJson<TilingMessage>(Message2);
+            if(temp.MessageType == messageClass.querySend)
+            {
+                List_TilingMessages_Collision.Add(temp);
+            }
+            else if (temp.MessageType == messageClass.positionUpdate)
+            {
+                List_TilingMessages_PositionUpdates.Add(temp);
+            }
+        };
+        TilingChannel.BasicConsume(queue: "position", autoAck: true, consumer: TilingConsumer);
+
     }
 
     // Update is called once per frame
@@ -141,7 +170,7 @@ public class SimpleRabMQSctipt : MonoBehaviour
                     List_MessageCollection.Add(simpleMessage);
                     string JsonEncoded = JsonUtility.ToJson(simpleMessage);
 
-                    SendMessage(JsonEncoded);
+                    SendMessageRabbitMQ(JsonEncoded);
                     TextBoxSend.text = "";
                 }
                 else
@@ -157,6 +186,14 @@ public class SimpleRabMQSctipt : MonoBehaviour
             {
                 List_MessageCollection.RemoveAt(0);
             }
+            if(List_TilingMessages_Collision.Count > 25)
+            {
+                List_TilingMessages_Collision.RemoveAt(0);
+            }
+            if(List_TilingMessages_PositionUpdates.Count > 25)
+            {
+                List_TilingMessages_PositionUpdates.RemoveAt(0);
+            }
         }
         
     }
@@ -169,7 +206,7 @@ public class SimpleRabMQSctipt : MonoBehaviour
             simple.Message = "[[User left channel!]]";
             simple.Username = Username;
             string JsonEncoded = JsonUtility.ToJson(simple);
-            SendMessage(JsonEncoded);
+            SendMessageRabbitMQ(JsonEncoded);
 
             channel.Close();
             conn.Close();
@@ -177,7 +214,7 @@ public class SimpleRabMQSctipt : MonoBehaviour
         //disconnections can be observed in the node server logs
     }
 
-    public void SendMessage(string MessageToSend)
+    public void SendMessageRabbitMQ(string MessageToSend)
     {
         var body = Encoding.UTF8.GetBytes(MessageToSend);
         channel.BasicPublish(exchange: "", routingKey: "hello", basicProperties: null, body: body);
@@ -189,7 +226,15 @@ public class SimpleRabMQSctipt : MonoBehaviour
         {
             for(int i = 0; i < List_MessageCollection.Count; i++)
             {
-                GUI.Label(new Rect(10, 11 * i, 1000, 50), (List_MessageCollection[i].Username + ": " + List_MessageCollection[i].Message));
+                GUI.Label(new Rect(10, 11 * i, 500, 50), (List_MessageCollection[i].Username + ": " + List_MessageCollection[i].Message));
+            }
+            for(int i = 0; i < List_TilingMessages_Collision.Count; i++)
+            {
+                GUI.Label(new Rect(500, 11 * i, 500, 50), (List_TilingMessages_Collision[i].Message)); //print the recived message just off the edge of the screen (?)
+            }
+            for(int i = 0; i < List_TilingMessages_PositionUpdates.Count; i++)
+            {
+                GUI.Label(new Rect(1000, 11 * i, 500, 50), (List_TilingMessages_PositionUpdates[i].Message)); //print the recived message just off the edge of the screen (?)
             }
         }
     }

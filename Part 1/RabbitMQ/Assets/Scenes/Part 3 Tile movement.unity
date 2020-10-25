@@ -346,6 +346,7 @@ GameObject:
   - component: {fileID: 143218438}
   - component: {fileID: 143218437}
   - component: {fileID: 143218440}
+  - component: {fileID: 143218441}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -431,6 +432,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dragSpeed: 10
+--- !u!114 &143218441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143218436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1175228d42f0f9547a03c6b32cd7181f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &871213446
 GameObject:
   m_ObjectHideFlags: 0
@@ -684,6 +697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileableObject: {fileID: 7639590860339560826, guid: 93c410d3e28480e46b63fb370d2a73a8, type: 3}
+  MessageService: {fileID: 143218441}
   IDPanel: {fileID: 1112264806}
   texts:
   - {fileID: 221139}
